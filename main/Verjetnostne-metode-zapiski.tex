@@ -4,7 +4,7 @@
 
 \newcommand{\ttitle}{Verjetnostne metode v računalništvu - zapiski s predavanj prof. Marca}
 \newcommand{\ttitleshort}{Verjetnostne metode v računalništvu}
-\newcommand{\tauthor}{Tomaž Poljanšek}
+\newcommand{\tauthor}{Tomaž Poljanšek\\Popravil: Matija Kocbek}
 \newcommand{\tdate}{študijsko leto 2023/24}
 
 \usepackage{color}
@@ -337,7 +337,7 @@ $C(n)$ - random variable, the number of comparisons in evaluation of Quicksort w
     E[C(n)] &= n - 1 + \sum_{i=1}^{n} \left(E[C(i-1)] + E[C(n-i)]\right) \cdot P_r(a \text{ is $i$-it element}) \leq \\
     &\leq n + \frac{2}{n} \sum_{i=1}^{n-1} E[C(i)].
   \end{align*}
-  Induction: \\
+  Induction: (Inductive hypothesis is $C(n) \leq 5n\log{n}$)\\
   $n = 1: \checkmark$ \\
   $n-1 \to n$:
   \begin{align*}
@@ -348,7 +348,7 @@ $C(n)$ - random variable, the number of comparisons in evaluation of Quicksort w
     &\leq n + \frac{2}{n} \sum_{i=1}^{\lfloor\frac{n}{2}\rfloor} 5i \log \frac{n}{2} +
       \frac{2}{n} \sum_{i=1+\lfloor\frac{n}{2}\rfloor}^{n-1} 5i \log n \leq \\
     &\stackrel{\refeq{eq:logn2}}{\leq} n + \frac{2}{n} \left(\sum_{i=1}^n 5i \log n - \sum_{i=1}^{\frac{n}{2}} 5i\right) = \\
-    &= n + \frac{10}{n} \left(\frac{n(n-1)}{2} \log n - \frac{\frac{n}{2} (\frac{n}{2} + 1)}{2}\right) \leq \\
+    &= n + \frac{10}{n} \left(\frac{n(n-1)}{2} \log n - \frac{\frac{n}{2} (\frac{n}{2} . 1)}{2}\right) \leq \\
     &\leq n + 5(n-1) \log n - n < \\
     &< 5n \log n.
   \end{align*}
@@ -358,22 +358,20 @@ $C(n)$ - random variable, the number of comparisons in evaluation of Quicksort w
   \end{equation}
   \qed
 \end{pro}
-$P\left(C(n) \geq b \cdot 5n \log n\right) \stackrel{\text{Markov}}{\leq} \frac{1}{b}$.
+This theorem gives us the following inequality: $P\left(C(n) \geq b \cdot 5n \log n\right) \stackrel{\text{Markov}}{\leq} \frac{1}{b}$.
+We give an alternative proof of the previous theorem:
 \begin{pro} \text{} \\
-  2: \\
   Let $S_1, S_2 \dots S_n$ sorted elements of $S$. \\
   Define random variable
   $X_{ij} = \begin{cases}
     1: \text{ if $S_i$ and $S_j$ are compared} \\
     0: \text{ else}
   \end{cases}$ \\
-  $C(n) = \sum_{1 \leq i < j \leq n} E[X_{ij}]$. \\
-  $E[X_{ij}] = P(S_i$ and $X_j$ compared$)$. \\
+  $C(n) = \sum_{1 \leq i < j \leq n}X_{ij}$. \\
+  $E[X_{ij}] = P(S_i$ and $S_j$ compared$)$. \\
   % skica
   $S_{ij}$ - the last set including $S_i$ and $S_j$. \\
-  $E[X_{ij}] = \frac{2}{|S_{ij}|} \leq \frac{2}{j-i+1}$. \\
-  $|S_{ij}| \geq j - i + 1$. \\
-  $S_{ij}$ has everything in between. \\
+  $E[X_{ij}] = \frac{2}{|S_{ij}|} \leq \frac{2}{j-i+1}$ because $|S_{ij}| \geq j - i + 1$ because $S_{ij}$ contains all elements between $S_i$ and $S_j$. \\
   \begin{align*}
     \implies E[C(n)] &\leq \sum_{1 \leq i < j \leq n} \frac{2}{j-i+1} = \\
     &\stackrel{k=j-i+1}{\longeq{35pt}} \sum_{i=1}^{n-1} \sum_{k=2}^{n-i+1} \frac{2}{k} \leq \\
@@ -402,19 +400,21 @@ Output: $\min |(U, V(G) \setminus U)|$ - cut size.
     Take min
 \end{lstlisting}
 $maxFlow$ is Edmonds-Karp algorithm $O\left(|V| |E|^2\right)$.
-\begin{lstlisting}
-  Algorithm 2 (Stoer Wagner)
-\end{lstlisting}
-Is $O\left(|E| |V| + |V| log |V|\right)$.
+This algorithm returns the minimum cut because maximum flow is equal to minimum cut. 
+
+A quicker deterministic algorithm is the Stoer-Wagner algorithm with time complexity $O\left(|E| |V| + |V|^2 log |V|\right)$.
+
+We give the probabilistic Karger algorithm:
 \begin{lstlisting}
   Algorithm randMinCut:
     $G_0 = G$
     i = 0
     while $|V(G_i)| > 2$:
-      $e_i$ = uniformly at random from $G_{i}$
-      $G_{i+1} = G_{i}/_{e_{i}}$
+      $e_i$ = uniformly at random from $G_{i}$ ($e_i \text{ is an edge}$)
+      $G_{i+1} = G_{i}/_{e_{i}}$ ($\text{we contract } e_i$)
       $i = i + 1$
-    $u, v = V(G_{n-2})$ # $n = |V(G)|$
+    $u, v = V(G_{n-2})$ # $n = |V(G)|$ 
+    ($u, v \text{ are vertices left after we finish the loop}$)
     $U = \{w \in V(G) \mid w \text{ is merged into } u\}$
     return $(U, V(G) \setminus U)$
 \end{lstlisting}
@@ -422,15 +422,11 @@ Is $O\left(|E| |V| + |V| log |V|\right)$.
   Algorithm $randMinCut$ gives you a minimal cut with probability greater or equal to $\frac{2}{n(n-1)}$.
 \end{theorem}
 \begin{pro} \text{} \\
-  Fact 1: $minCut(G_i) \leq minCut(G_i)$;
-  \begin{itemize}[label={}]
-    %\item $\leq$: %example
-    \item $\ngtr$: $minCut$ remains.
-  \end{itemize}
+  Fact 1: $minCut(G_i) \leq minCut(G_{i+1})$;
   Fact 2: $minCut(G) \leq \delta(G)$. \\
   $k := minCut(G)$. \\
   Let $(A,B)$ be an optimal cut. \\
-  $\varepsilon_i = e_i$ not in $(A,B)$.
+  Let $\varepsilon_i$ be the event when $e_i$ not in $(A,B)$.
   \begin{align}
     &P_r(\text{Algorithm returning } (A,B)) \nonumber \\
     &= P_r(\varepsilon_0 \cap \dots \cap \varepsilon_{n-3}) \quad i = 0 \dots n-3 \nonumber  \\
@@ -468,13 +464,13 @@ Is $O\left(|E| |V| + |V| log |V|\right)$.
   \end{align*}
   \begin{equation}
     \label{eq:1-x-leq-e}
-    1 - x \leq e^x \; \forall x \in \R.
+    1 + x \leq e^x \; \forall x \in \R.
   \end{equation}
   \qed
 \end{pro}
-If we run $n(n-1) log(n)$ times $\to O\left(\frac{1}{n}\right)$. \\
-$O\left(n^2 \log n \cdot n\right)$. \\
-Improved: $O\left(n^2 \log^3 n\right)$.
+If we run $randMinCut$ $n(n-1) \log(n)$ times, we get an incorrect answer with probability at most $\frac{1}{n^2}$ (repeat the previous proof). Because contracting an edge takes
+$m = |E|$ operations, we get the time complexity $O\left(mn^2 \log n\right)$.\\
+We could improve the algorithm to get time complexity $O\left(mn \log^3 n\right)$.
 
 
 
@@ -484,7 +480,7 @@ Improved: $O\left(n^2 \log^3 n\right)$.
 Decision problem - yes/no question on a set of inputs = asking $w \in \Pi$. \\
 Randomized algorithms:
 \begin{itemize}
-  \item Las Vegas algorithms: always gives correct solution, example: $Quicksort$.
+  \item Las Vegas algorithms: always gives correct solution but isn't always quick, example: $Quicksort$.
   \item Monte Carlo algorithms: it can give wrong answers.
     Monte Carlo algorithms subtypes:
     \begin{itemize}
@@ -527,7 +523,7 @@ Complexity classes:
     with expected polynomial time complexity (worst case).
 \end{itemize}
 % skica
-ZPP = RP $\cap$ co-RP.
+ZPP = RP $\cap$ co-RP (proof: \url{https://cs.stackexchange.com/questions/54782/why-is-zpp-rp-%E2%88%A9-co-rp})
 
 
 
@@ -536,14 +532,14 @@ ZPP = RP $\cap$ co-RP.
 
 \begin{theorem}
   Let $X_1, X_2 \dots X_n$ independent random variables with image $\{0, 1\}$. Let \\
-  $p_i = P_r(X_i = x_i), \\
+  $p_i = P_r(X_i = 1), \\
   X = \sum_{i=1}^{n} X_i$ and \\
   $\mu = E(X) = p_1 + \dots + p_n$. \\
-  For every $\delta \in (0,1)$:
+  For every $\delta \in [0,1]$:
   \begin{align*}
     &P_r(X - \mu \geq \delta \mu) \leq e^{-\frac{\delta^2 \mu}{3}} \\
     &P_r(\mu - X \leq \delta \mu) \leq e^{-\frac{\delta^2 \mu}{2}} \\
-    \implies &P_r(|X - \mu| \geq \delta \mu) \leq e^{-\frac{\delta^2 \mu}{3}}. \\
+    \implies &P_r(|X - \mu| \geq \delta \mu) \leq 2e^{-\frac{\delta^2 \mu}{3}}. \\
   \end{align*}
 \end{theorem}
 % skica
@@ -573,16 +569,17 @@ Probability falls extremely quickly after $E(X)$.
     E(e^{tX_i}) = p_i \cdot e^t + (1-p_i) \cdot e^0 = 1+p_i(e^t-1) \stackrel{\refeq{eq:1-x-leq-e}}{\leq} e^{p_i(e^t-1)}.
     \label{eq:et_xi}
   \end{equation}
-  Want:
+  We want:
   \begin{equation}
     e^t - 1 - t(1+\delta) \leq -\frac{\delta^2}{3} \; \forall \delta \in (0,1) \label{eq:leq_in_exp}
   \end{equation}
   \begin{align*}
-    &t = \ln(1+\delta) \\
+    &\text{We select }t = \ln(1+\delta) \\
     &f(\delta) = 1 + \delta - 1 - (1+\delta) \ln(1+\delta) + \frac{\delta^2}{3} \stackrel{?}{\leq} 0 \\
     &f(0) = 0 \\
     &f^{'}(\delta) = 1 - \ln(1+\delta) - 1 + \frac{2}{3} \delta = \frac{2}{3} \delta - \ln(1+\delta) \stackrel{?}{\leq} 0 \\
-    &\frac{2}{3} \delta \leq \ln(1+\delta) \\
+    &\frac{2}{3} \delta \leq \ln(1+\delta) (\text{we prove this by showing that LHS - RHS}\\
+    &\text{has one stationary point on }[0,1]\text{ and is negative in }\delta = 1)\\
     % skica
     &\delta=1: \; \frac{2}{3} \stackrel{?}{\leq} \ln(2) \approx 0.69 \checkmark
   \end{align*}
@@ -594,17 +591,16 @@ Probability falls extremely quickly after $E(X)$.
   \end{align*}
   Want: $e^t - 1 - t(1-\delta) \leq -\frac{\delta^2}{2} \; \forall \delta \in (0,1)$:
   \begin{align*}
-    &t = \ln(1-\delta) \\
+    &\text{We select }t = \ln(1-\delta) \\
     &f(\delta) = 1 - \delta - 1 - (1-\delta) \ln(1-\delta) + \frac{\delta^2}{2} \stackrel{?}{\leq} 0 \\
     &f(0) = 0 \\
     &f^{'}(\delta) = - 1 + 1 - \ln(1-\delta) + \delta \stackrel{?}{\leq} 0 \\
-    &\frac{2}{3} \delta \leq \ln(1+\delta) \\
-    &\ln(1-\delta) \stackrel{?}{\leq} -\delta \checkmark
+    &\text{Similarly to before we prove that }\delta \leq \ln(1-\delta)
     % skica
   \end{align*}
   \qed
 \end{pro}
-$X_i \sim \begin{pmatrix}0 & 1 \\ \frac{1}{2} & \frac{1}{2}\end{pmatrix}$ \\
+Let now $X_i \sim \begin{pmatrix}0 & 1 \\ \frac{1}{2} & \frac{1}{2}\end{pmatrix}$ \\
 $X = \sum_{i=1}^{n} X_i$ \\
 $\mu = \frac{n}{2}$
 \begin{align*}
@@ -624,7 +620,7 @@ $d = \sqrt{\frac{3}{2}n \ln(n)}$
 \begin{claim} \text{} \\
   Let $X_1, X_2 \dots$ independent random variables with image $\{0,1\}$. \\
   $P_r(X_i = 1) = \frac{1}{2} \; \forall i$. \\
-  Let $X = \sum_{i=1}^{cm} X_i$ where $c \geq 4$. \\
+  Let $X = \sum_{i=1}^{cm} X_i$ where $c \geq 4, m \in \mathbb{N}$. \\
   Then $P_r(X \leq m) \leq e^{-\frac{cm}{16}}$.
 \end{claim}
 \begin{pro}
@@ -646,8 +642,7 @@ Back to Quicksort.
 \end{theorem}
 \begin{pro} \text{} \\
   % skica (i)
-  For $s \in S$ define $S_1^S \dots S_{t_s}^S \neq \emptyset$ sets that include $s$,
-  $t_s$ - number of comparisons with $s$ where $s$ is not a pivot $+1$. \\
+  Let $t_s - 1$ be the number of comparisons with $s$ where $s$ is not a pivot.. For $s \in S$ define $S_1, \dots, S_{t_s} \neq \emptyset$ sets that include $s$. \\
   Define: iteration $i$ is successful if $|S_{i+1}| \leq \frac{3}{4} |S_i|$ ($\frac{1}{2}$ is too strict).
   \begin{equation*}
     X_i = \begin{cases}
@@ -656,29 +651,25 @@ Back to Quicksort.
     \end{cases}
   \end{equation*}
   % skica (i)
-  $P_r(X_i = 1) \geq \frac{1}{2}$ \\
-  $S_i: n \to \frac{3}{4} n \to (\frac{3}{4})^2 n \to \dots \to 1$. \\
-  Notice: max number of iterations is $\log_{\frac{4}{3}}(n) = \frac{\ln(n)}{\ln(4)-\ln(3)}$. \\
-  Probability that we haven't succeeded in $\log_{\frac{4}{3}}(n)$ steps:
+  Notice: after at most $\log_{\frac{4}{3}}(n) = \frac{\ln(n)}{\ln(4)-\ln(3)}$ succesful iterations, the element $s$ is sorted. \\
+  Probability that we haven't sorted $s$ after $c\log_{\frac{4}{3}}(n)$ steps is at most:
   \begin{align}
     P_r\left(\sum_{i=1}^{c \log_{\frac{4}{3}}(n)} X_i < \log_{\frac{4}{3}}(n)\right) &\leq
       P_r\left(\sum_{i=1}^{c \log_{\frac{4}{3}}(n)} Y_i < \log_{\frac{4}{3}}(n)\right) \label{eq:X_to_Y} \\
     &\stackrel{\text{Chernoff}}{<} e^{-\frac{c \log_{\frac{4}{3}}(n)}{24}} \nonumber \\
-    &= e^{-\frac{c \ln(n) \log_{\frac{4}{3}}(e)}{24}} \nonumber\\
-    &= \frac{1}{n} \frac{c \log_{\frac{4}{3}}(e)}{24} \nonumber \\
+    &= e^{-\frac{c 2\ln(n) \log_{\frac{4}{3}}(e)}{48}} \nonumber\\
+    &= \frac{1}{n^2} \frac{c \log_{\frac{4}{3}}(e)}{48} \nonumber \\
     &\stackrel{\refeq{eq:log-c}}{\leq} \left(\frac{1}{n}\right)^2. \nonumber
   \end{align}
-  \refeq{eq:X_to_Y} because $X_i$ not independent,
-  $Y_i \sim \begin{pmatrix}0 & 1 \\ \frac{1}{2} & \frac{1}{2}\end{pmatrix}$ independent,
+  \refeq{eq:X_to_Y} because $X_i$ is not independent, we select such independent
+  $Y_i \sim \begin{pmatrix}0 & 1 \\ \frac{1}{2} & \frac{1}{2}\end{pmatrix}$, so that $X_i \geq Y_i$ (how do we construct such $Y_i$???)
   \begin{equation}
     \label{eq:log-c}
-    \log_{\frac{4}{3}}(e) \approx 3.4, \; c=14.
+    \log_{\frac{4}{3}}(e) \approx 3.4, \; \text{we select }c=14.
   \end{equation}
-  $P_r(t_s \geq c \log_{\frac{4}{3}}(n)) \geq \left(\frac{1}{n}\right)^2$ for one $s$. \\
-  $c=14 \implies$ at least $48 \ln(n)$ iterations with probability $\leq \left(\frac{1}{n}\right)^2$. \\
-  With probability as least $1-\frac{1}{n}$ for all $s \in S$ it holds that $s$ has $\leq 48 \ln(n)$ comparisons with a pivot. \\
-  $\implies$ total number of comparisons $n \cdot 48 \ln(n)$ with probability at least \\
-  $1 - \frac{1}{n}$.
+  Because of \refeq{eq:log-c}, we know that to sort $s$ we will need at least $48 \ln(n)$ iterations with probability less than $\left(\frac{1}{n}\right)^2$. Denote this event with $A_s$.
+  The probability that we will need at least $48 \ln(n)$ iterations to sort any $s \in S$ is $P(\bigcup_{s \in S}A_s) \leq \sum_{s \in S}P(A_s) \leq n\frac{1}{n^2} = \frac{1}{n}$.
+  Thus we will need at $48n\ln(n)$ iterations in total with probability less than $\frac{1}{n}$ or in other words, total number of comparisons will be at most $48n\ln(n)$ with probability $1 - \frac{1}{n}$.
   \qed
 \end{pro}
 
