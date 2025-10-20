@@ -699,10 +699,10 @@ $E(X) = \frac{n \cdot E(X_i)}{n} = E(X_i)$.
 $I = \int_{\Omega} f(x) dx$ - volume. \\
 % skica
 $X_i = \begin{cases}
-  1: \; F(x_i,y_i) \leq z_i \\
+  1: \; f(x_i,y_i) \leq z_i \\
   0: \text{ otherwise}
 \end{cases}$ \\
-$v \cdot E\left(\frac{\sum_{i=1}^{n} X_i}{n}\right) = I$.
+$v \cdot E\left(\frac{\sum_{i=1}^{n} X_i}{n}\right) = I$ where $v$ is the volume of the subset from which we take random $(x_i, y_i, z_i)$.
 
 
 \section{$(\varepsilon,\delta)$-approximation}
@@ -747,8 +747,8 @@ Problems for MC (Monte-Carlo):
 \section{DNF counting}
 
 CNF: $(X_{i_1} \lor \overline{X_{i_2}} \lor X_{i_4}) \land (X_{i_1} \lor \overline{X_{i_3}}) \land \dots$ \\
-DNF: $(\overline{X_{i_1}} \land X_{i_2} \lor \overline{X_{i_4}}) \lor \dots$
-- easy to determine if solution exists. \\
+DNF: $(\overline{X_{i_1}} \land X_{i_2} \land \overline{X_{i_4}}) \lor \dots$
+- easy to determine if solution exists - this is the negation of the above CNF. \\
 Question: number of solutions to a given DNF? \\
 Observation: CNF $F$ has a solution $\iff$ DNF $\neg F$ has less than $2^n$ solutions, $n$ is number of samples.
 \begin{lstlisting}
@@ -760,65 +760,68 @@ Observation: CNF $F$ has a solution $\iff$ DNF $\neg F$ has less than $2^n$ solu
         $x += 1$
     return $\frac{x}{m} \cdot 2^n$
 \end{lstlisting}
+$X_i = \begin{cases}
+  1: \; F(x_{i1}, \ldots, x_{in}) = 1 \\
+  0: \text{ otherwise}
+\end{cases}$ \\
 $Y = \frac{\sum_{i=1}^{m} X_i}{m}$ \\
-$(\varepsilon,\delta)$-approximation for $Y$. \\
+We attempt to achieve an $(\varepsilon,\delta)$-approximation for the number of solutions of the DNF using $Y$. \\
+$E(X_i) = P_r(X_i = 1) = \frac{\text{number of solutions of }F}{2^n}$ \\
 $E(Y) = \frac{\text{number of solutions of }F}{2^n} = \frac{c(F)}{2^n}$ \\
-$m \geq \frac{3 \ln\left(\frac{2}{\delta}\right)}{\varepsilon^2 E(X)} =
-\frac{3 \ln\left(\frac{2}{\delta}\right)}{\varepsilon^2} \cdot \frac{2^n}{c(F)}$ \\
+For $Y$ to be an $(\varepsilon,\delta)$-approximation we need $m \geq \frac{3 \ln\left(\frac{2}{\delta}\right)}{\varepsilon^2 E(X)} =
+\frac{3 \ln\left(\frac{2}{\delta}\right)}{\varepsilon^2} \cdot \frac{2^n}{c(F)}$ according to the previous theorem. \\
 $c(F)$ very small $\to$ $m$ exponentially big $\to$ not good (we need a lot of samples).
 \begin{defn} \text{} \\
   $SC_i = \{(a_1 \dots a_n) \in \{0,1\}^n \text{ such that } F = F_1 \lor \dots \lor F_t, \; F_i(a_1 \dots a_n) = 1\}$.
   % skica
 \end{defn}
-$|SC_i| = 2^{n-l_i}$, $l_i$: number of values in $F_i$ \\
+Suppose $F_i$ is a conjuction of $l_i$ different variables $a_{i_1}, \ldots, a_{i_{l_i}}$ (or their negations). If $F_i(a_1, \ldots, a_n) = 1$, this uniquely determines
+$a_{i_1}, \ldots, a_{i_{l_i}}$ and so $|SC_i| = 2^{n-l_i}$ \\
 $U = \{(i,a) \mid i \in \{1,2 \dots t\}, a \in SC_i\}$ \\
-$U = \sum_{i=1}^{t} |SC_i|$ - $O(tn)$ (space smaller than $\{0,1\}^n$) \\
+$|U| = \sum_{i=1}^{t} |SC_i|$ (space smaller than $\{0,1\}^n$) \\
 $S = \{(i,a) \in U \mid a \in SC_i, \; a \not \in SC_j \; 1 \leq j < i\}$ \\
-$|S| = |SC_1| + \dots + |SC_t| = c(F)$.
+$|S| =  c(F)$ (each solution appears exactly once in $S$).
 \begin{lstlisting}
   ALG_2(F):
     $x = 0$
     for i in range(1,$m+1$):
-      $(i, a)$ uniformly random from U $\refeq{details}$
-      if $(i, a) \in S$: $\refeq{eq:sci}$
+      $(i, a)$ uniformly random from $U$
+      if $(i, a) \in S$:
         $x += 1$
     return $\frac{x}{m} \cdot |U|$
 \end{lstlisting}
-\begin{align}
-  &a \in SC_i \to O(n), \; a \notin SC_j \; j = 1 \dots i-1 \to O(tn) \label{eq:sci} \\
-  &\implies \; O(tn), m \text{ times}. \nonumber
-\end{align}
-\begin{align}
-  &\text{watch for details on how to, e.g. } x_2, x_2 \land x_3 \label{details} \\
-  &x_2 \text{ is more probable than } x_2 \land x_3 \to O(1). \nonumber
-\end{align}
+In order to check whether $a \in S$, we need to check whether there is such $i$ so that $a \in SC_i$ and $a \notin SC_j \; j = 1 \dots i-1$. To check whether or not $a \in SC_i$ takes $O(n)$ time,
+so the it takes $O(tn)$ time to check whether $a \in S$.
+
+We can implement uniform random selection from $U$ with $O(1)$ time complexity so the total time complexity is $O(t\cdot n\cdot m)$.
 \begin{theorem}
   For $m = \left\lceil\frac{3t \ln(\left(\frac{2}{\delta}\right))}{\varepsilon^2}\right\rceil$
   algorithm returns $(\varepsilon,\delta)$-approximation
-  in $O\left(\frac{t^n n \ln\left(\frac{2}{\delta}\right)}{\varepsilon^2}\right)$ time.
+  in $O\left(\frac{t^2 n \ln\left(\frac{2}{\delta}\right)}{\varepsilon^2}\right)$ time.
 \end{theorem} 
-\begin{pro} \text{} \\
-  $O(t \cdot n \cdot m)$. \\
-  Insert $m = ...$
-  \qed
-\end{pro}
-Prove
-\begin{equation*}
-  P_r(Y|U| - c(F) > \varepsilon c(F)) < \delta:
-\end{equation*}
-$c(F) = |S|, E(Y) = \frac{|S|}{|U|}$
+The time complexity follows immediately from the previous analysis. Define
+$$X_i = \begin{cases}
+  1: \text{ $i$-th selection is in } $S$ \\
+  0: \text{ otherwise}
+\end{cases}$$
+$$Y = \frac{\sum_{i=1}^{m} X_i}{m}$$
+We have $c(F) = |S|, E(Y) = \frac{|S|}{|U|}$ and so
 \begin{align*}
   P_r(Y|U| - c(F) > \varepsilon c(F)) &= P_r(|U|(Y - E(Y)) > \varepsilon |U| E(Y)) \leq \delta
 \end{align*}
 if
 \begin{equation*}
-  m \geq \frac{3 \ln\left(\frac{2}{\delta}\right)}{\varepsilon^2 E(Y)} \geq \frac{3 \ln\left(\frac{2}{\delta}\right)t}{\varepsilon^2}
+  m \geq \frac{3 \ln\left(\frac{2}{\delta}\right)}{\varepsilon^2 E(Y)}.
 \end{equation*}
-where
+We have
 \begin{equation*}
   E(Y) = \frac{|S|}{|U|} \geq \frac{1}{t}
 \end{equation*}
-($=$ if disjoint). \\
+This is because $SC_i$ contains at most $c(F)$ elements for every $i$ and $|S| = c(F)$.\\
+So it suffices to take
+\begin{equation*}
+  m \geq \frac{3 \ln\left(\frac{2}{\delta}\right)t}{\varepsilon^2} \geq \frac{3 \ln\left(\frac{2}{\delta}\right)}{\varepsilon^2 E(Y)}.
+\end{equation*}
 In new space $E(Y)$ much larger $\implies$ $m$ smaller.
 % skica
 
